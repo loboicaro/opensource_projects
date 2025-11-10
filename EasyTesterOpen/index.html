@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyTester Open</title>
+<style>
+  body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f7f9fb;
+    color: #222;
+    margin: 0;
+    padding: 0;
+  }
+
+  header {
+    background: #0066cc;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  label {
+    display: block;
+    font-weight: bold;
+    margin-top: 15px;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 5px;
+    font-size: 14px;
+  }
+
+  button {
+    padding: 10px 18px;
+    margin: 8px 5px 0 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  button:hover { opacity: 0.9; }
+  .btn-primary { background: #0066cc; color: white; }
+  .btn-secondary { background: #e0e0e0; }
+  .btn-danger { background: #d9534f; color: white; }
+
+  #tools {
+    margin: 10px 0;
+  }
+
+  canvas {
+    display: block;
+    margin: 10px auto;
+    max-width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  #screenshot-preview { display: none; }
+
+  .tool-settings {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 10px 0;
+  }
+
+  .form-actions { margin-top: 15px; }
+
+  /* 🟩 Estilo do editor modal */
+  #editorImagem {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    flex-direction: column;
+  }
+
+  #editorImagem .editor-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 90%;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #canvasEditor {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    max-width: 100%;
+    max-height: 70vh;
+  }
+
+  .editor-tools {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .cor-marcador {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    cursor: pointer;
+  }
+
+  .cor-marcador.ativa {
+    border: 3px solid #000;
+  }
+
+  footer {
+    background: #0066cc;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+
+  .footer-info {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid white;
+    border-radius: 8px;
+    padding: 15px;
+    max-width: 400px;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 2px 10px rgba(255,255,255,0.25);
+    backdrop-filter: blur(2px);
+  }
+
+  .footer-dev {
+    font-size: 15px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  @media (max-width: 768px) {
+    footer {
+      flex-direction: column;
+      text-align: center;
+      gap: 15px;
+    }
+    .footer-dev { text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<header>EasyTester Open</header>
+
+<div class="container">
+  <!-- ... Campos principais para preenchimento ... -->
+  <label>Tipo de sistema:</label>
+  <select id="tipoSistema">
+    <option>Web</option>
+    <option>Mobile</option>
+    <option>API</option>
+    <option>Outro</option>
+  </select>
+
+  <label>Versão do sistema:</label>
+  <input type="text" id="versao">
+
+  <label>Funcionalidade testada:</label>
+  <input type="text" id="funcionalidade">
+
+  <label>Tarefa/User Story relacionada:</label>
+  <input type="text" id="userStory">
+
+  <label>Pré-requisitos:</label>
+  <input type="text" id="preRequisitos">
+
+  <label>Tipo de teste:</label>
+  <select id="tipoTeste">
+    <option>Smoke Test</option>
+    <option>Teste regressivo</option>
+    <option>Nova Funcionalidade</option>
+    <option>Teste de confirmação</option>
+    <option>Teste Funcional</option>
+    <option>Teste de Usabilidade</option>
+    <option>Teste de Acessibilidade</option>
+    <option>Teste E2E</option>
+  </select>
+
+  <label>Tags:</label>
+  <input type="text" id="tags">
+
+  <hr>
+  <button class="btn-primary" onclick="captureScreen()">Capturar Screenshot</button>
+  <div id="tools" style="display:none;">
+   
+  </div>
+
+  <canvas id="canvas"></canvas>
+  <label>Descrição do comportamento:</label>
+  <textarea id="comportamento" rows="4" placeholder="Descreva aqui o comportamento encontrado durante o teste..."></textarea>
+  <div class="form-actions">
+    <button class="btn-primary" onclick="salvarCampos()">Salvar</button>
+    <button class="btn-secondary" onclick="limparCampos()">Limpar</button>
+  </div>
+  <button class="btn-primary" style="display:none;" id="btnPDF" onclick="gerarPDF()">Gerar PDF</button>
+</div>
+
+<!-- ================= Editor dos prints capturados ================= -->
+<div id="editorModal" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+">
+  <div style="
+    background: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  ">
+    <canvas id="modalCanvas" style="
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: crosshair;
+      max-width: 90vw;
+      max-height: 70vh;
+    "></canvas>
+
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <button id="btnCorAmarelo" title="Amarelo" style="background: #ffeb3b; width:36px; height:36px; border-radius:6px;"></button>
+      <button id="btnCorVermelho" title="Vermelho" style="background: #f44336; width:36px; height:36px; border-radius:6px;"></button>
+      <button id="btnCorAzul" title="Azul" style="background: #2196f3; width:36px; height:36px; border-radius:6px;"></button>
+      <button id="btnCorVerde" title="Verde" style="background: #4caf50; width:36px; height:36px; border-radius:6px;"></button>
+      <button id="btnBorracha">🧽 Borracha</button>
+      <label style="display:flex;align-items:center; gap:6px;">Espessura:
+        <input type="range" id="espessura" min="2" max="70" value="10">
+      </label>
+      <button id="btnLimparTudo">🧹 Limpar</button>
+      <button id="btnAplicarEdicao">💾 Aplicar</button>
+      <button id="btnCancelarEdicao">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-info">
+    <strong>Privacidade e Segurança</strong><br><br>
+    • Os dados ficam apenas no seu navegador (Armazenamento Local).<br>
+    • Nenhum dado é enviado para fora (Informações Protegidas).<br>
+    • Funciona online e offline após o carregamento.
+  </div>
+  <div class="footer-dev">Desenvolvido por Icaro Lobo</div>
+</footer>
+
+<script>
+/* =====================================================
+   Variáveis e estado principal
+   ===================================================== */
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
+let prints = []; // armazenará até 5 capturas (dataURLs)
+let scaleX = 1, scaleY = 1;
+
+/* ------- Elementos do editor modal (corrigidos) ------- */
+const editorModal = document.getElementById("editorModal");   // modal que você tem no HTML
+const modalCanvas = document.getElementById("modalCanvas");   // canvas do modal
+const modalCtx = modalCanvas.getContext("2d");
+
+const btnCorAmarelo = document.getElementById("btnCorAmarelo");
+const btnCorVermelho = document.getElementById("btnCorVermelho");
+const btnCorAzul = document.getElementById("btnCorAzul");
+const btnCorVerde = document.getElementById("btnCorVerde");
+const btnBorracha = document.getElementById("btnBorracha");
+const espessuraInput = document.getElementById("espessura");
+const btnLimparTudo = document.getElementById("btnLimparTudo");
+const btnAplicarEdicao = document.getElementById("btnAplicarEdicao");
+const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
+
+let editingIndex = null; // qual print está sendo editado
+let drawing = false;
+let lastX = 0, lastY = 0;
+let currentColor = 'rgba(255,235,59,0.8)'; // amarelo padrão 
+let currentThickness = parseInt(espessuraInput.value, 10) || 10;
+let mode = 'mark'; // 'mark' ou 'erase'
+
+/* =====================================================
+   Função: captura de tela 
+   ===================================================== */
+async function captureScreen() {
+  try {
+    if (prints.length >= 5) {
+      alert("Você já capturou o máximo de 5 prints.");
+      return;
+    }
+
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+    const track = stream.getVideoTracks()[0];
+    const imageCapture = new ImageCapture(track);
+
+    // pequeno delay para permitir estabilização do frame
+    await new Promise(resolve => setTimeout(resolve, 1800));
+
+    const bitmap = await imageCapture.grabFrame();
+    track.stop();
+
+    // desenha no canvas principal
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+    // atualiza escala (caso necessário em cliques relativos)
+    const rect = canvas.getBoundingClientRect();
+    scaleX = canvas.width / rect.width;
+    scaleY = canvas.height / rect.height;
+
+    document.getElementById("tools").style.display = "block";
+    document.getElementById("btnPDF").style.display = "inline-block";
+
+    // adiciona print ao array e atualiza miniaturas + contador
+    const thumbData = canvas.toDataURL("image/png");
+    prints.push(thumbData);
+    atualizarMiniaturas();
+    atualizarContadorPrints();
+
+  } catch (err) {
+    console.error("Erro ao capturar tela:", err);
+    alert("Não foi possível capturar a tela. Verifique as permissões.");
+  }
+}
+
+/* =====================================================
+   Miniaturas e contador
+   ===================================================== */
+function atualizarMiniaturas() {
+  let gallery = document.getElementById("thumbnails");
+  if (!gallery) {
+    gallery = document.createElement("div");
+    gallery.id = "thumbnails";
+    gallery.style.display = "flex";
+    gallery.style.flexWrap = "wrap";
+    gallery.style.gap = "10px";
+    gallery.style.marginTop = "10px";
+    document.querySelector(".container").insertBefore(gallery, document.getElementById("canvas"));
+  }
+
+  gallery.innerHTML = "";
+  prints.forEach((imgSrc, index) => {
+    const wrap = document.createElement("div");
+    wrap.className = "thumb-wrap";
+
+    const img = document.createElement("img");
+    img.src = imgSrc;
+    img.style.width = "160px";
+    img.style.height = "auto";
+    img.style.border = "1px solid #ccc";
+    img.style.borderRadius = "8px";
+    img.style.cursor = "pointer";
+    img.title = `Print ${index + 1}`;
+
+    img.onclick = () => {
+      // desenha a imagem selecionada no canvas principal
+      const image = new Image();
+      image.src = imgSrc;
+      image.onload = () => {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        const rect = canvas.getBoundingClientRect();
+        scaleX = canvas.width / rect.width;
+        scaleY = canvas.height / rect.height;
+      };
+    };
+
+    const actions = document.createElement("div");
+    actions.className = "thumb-actions";
+
+    const editBtn = document.createElement("button");
+    editBtn.className = "btn-secondary";
+    editBtn.textContent = "✏️ Editar Print";
+    editBtn.title = "Editar este print";
+    editBtn.onclick = () => abrirEditor(index);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn-danger";
+    deleteBtn.textContent = "🗑️ Excluir";
+    deleteBtn.title = "Remover este print";
+    deleteBtn.onclick = () => {
+      if (!confirm("Remover este print?")) return;
+      prints.splice(index, 1);
+      atualizarMiniaturas();
+      atualizarContadorPrints();
+      // se a imagem removida estava no canvas principal, limpa
+      if (prints[index]) {
+        // nothing
+      } else {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+      }
+      // atualiza btnPDF visibilidade
+      if (prints.length === 0) {
+        document.getElementById("btnPDF").style.display = "none";
+      }
+    };
+
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+
+    wrap.appendChild(img);
+    wrap.appendChild(actions);
+    gallery.appendChild(wrap);
+  });
+}
+
+function atualizarContadorPrints() {
+  const contador = document.getElementById("printCounter");
+  if (!contador) return;
+  contador.textContent = `(${prints.length}/5 prints capturados)`;
+}
+
+/* =====================================================
+   Editor modal: abrir, desenhar, aplicar, descartar
+   ===================================================== */
+
+function abrirEditor(index) {
+  if (typeof prints[index] === 'undefined') return;
+  editingIndex = index;
+
+  const img = new Image();
+  img.src = prints[index];
+  img.onload = () => {
+    // Ajusta canvas interno para o tamanho real da imagem
+    modalCanvas.width = img.width;
+    modalCanvas.height = img.height;
+    modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+    modalCtx.drawImage(img, 0, 0, modalCanvas.width, modalCanvas.height);
+
+    // Exibe o modal e prepara o estado do editor
+    editorModal.style.display = "flex";
+    mode = 'mark';
+    currentColor = 'rgba(255,235,59,0.8)'; // amarelo padrão
+    currentThickness = parseInt(espessuraInput.value, 10) || 10;
+    atualizarBotoesCoresVisuais();
+    atualizarCursor();
+  };
+}
+
+/* === Fechar / Cancelar === */
+btnCancelarEdicao.addEventListener('click', fecharEditor);
+
+function fecharEditor() {
+  editorModal.style.display = "none";
+  editingIndex = null;
+  drawing = false;
+}
+
+/* === Ferramentas do Editor === */
+
+// Cores: definem currentColor e indicam visualmente
+function setColorRGBA(r,g,b,a){
+  currentColor = `rgba(${r},${g},${b},${a})`;
+  mode = 'mark';
+  atualizarBotoesCoresVisuais();
+  atualizarCursor();
+}
+
+btnCorAmarelo.addEventListener('click', () => setColorRGBA(255,235,59,0.8));
+btnCorVermelho.addEventListener('click', () => setColorRGBA(244,67,54,0.8));
+btnCorAzul.addEventListener('click', () => setColorRGBA(33,150,243,0.8));
+btnCorVerde.addEventListener('click', () => setColorRGBA(76,175,80,0.8));
+
+function atualizarBotoesCoresVisuais(){
+  // Limpa estilo
+  [btnCorAmarelo, btnCorVermelho, btnCorAzul, btnCorVerde].forEach(b => {
+    b.style.outline = 'none';
+    b.style.boxShadow = 'none';
+  });
+  // Marca o botão ativo conforme currentColor
+  const map = {
+    'rgba(255,235,59,0.8)': btnCorAmarelo,
+    'rgba(244,67,54,0.8)': btnCorVermelho,
+    'rgba(33,150,243,0.8)': btnCorAzul,
+    'rgba(76,175,80,0.8)': btnCorVerde
+  };
+  if (map[currentColor]) {
+    map[currentColor].style.boxShadow = '0 0 0 3px rgba(0,0,0,0.12) inset';
+  }
+}
+
+// Borracha toggle
+btnBorracha.addEventListener('click', () => {
+  mode = (mode === 'erase') ? 'mark' : 'erase';
+  btnBorracha.textContent = mode === 'erase' ? '✏️ Voltar a desenhar' : '🧽 Borracha';
+  atualizarCursor();
+});
+
+// Espessura
+espessuraInput.addEventListener('input', (e) => {
+  currentThickness = parseInt(e.target.value, 10) || 10;
+  atualizarCursor();
+});
+
+// Limpar para a imagem base (remove todas as marcações)
+btnLimparTudo.addEventListener('click', () => {
+  if (editingIndex === null) return;
+  const base = new Image();
+  base.src = prints[editingIndex];
+  base.onload = () => {
+    modalCtx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+    modalCtx.drawImage(base, 0, 0, modalCanvas.width, modalCanvas.height);
+  };
+});
+
+// Aplicar edição ao prints[] e atualizar miniaturas + canvas principal
+btnAplicarEdicao.addEventListener('click', () => {
+  if (editingIndex === null) return;
+
+  const editedData = modalCanvas.toDataURL('image/png');
+  prints[editingIndex] = editedData;
+
+  atualizarMiniaturas();
+  atualizarContadorPrints();
+
+  const img = new Image();
+  img.src = editedData;
+  img.onload = () => {
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  };
+
+  fecharEditor();
+});
+
+/* === Desenho no canvas do editor (mouse + touch) === */
+
+function getCanvasCoordsFromMouseEvent(e, canvasEl) {
+  const rect = canvasEl.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvasEl.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvasEl.height / rect.height);
+  return { x, y };
+}
+
+function getCanvasCoordsFromTouchEvent(touch, canvasEl) {
+  const rect = canvasEl.getBoundingClientRect();
+  const x = (touch.clientX - rect.left) * (canvasEl.width / rect.width);
+  const y = (touch.clientY - rect.top) * (canvasEl.height / rect.height);
+  return { x, y };
+}
+
+modalCanvas.addEventListener('mousedown', (e) => {
+  drawing = true;
+  const p = getCanvasCoordsFromMouseEvent(e, modalCanvas);
+  lastX = p.x; lastY = p.y;
+});
+
+modalCanvas.addEventListener('mousemove', (e) => {
+  if (!drawing) return;
+  const p = getCanvasCoordsFromMouseEvent(e, modalCanvas);
+  drawLineOrErase(lastX, lastY, p.x, p.y);
+  lastX = p.x; lastY = p.y;
+});
+
+modalCanvas.addEventListener('mouseup', () => drawing = false);
+modalCanvas.addEventListener('mouseleave', () => drawing = false);
+
+// Touch events for mobile
+modalCanvas.addEventListener('touchstart', (ev) => {
+  ev.preventDefault();
+  const touch = ev.touches[0];
+  if (!touch) return;
+  drawing = true;
+  const p = getCanvasCoordsFromTouchEvent(touch, modalCanvas);
+  lastX = p.x; lastY = p.y;
+});
+
+modalCanvas.addEventListener('touchmove', (ev) => {
+  ev.preventDefault();
+  if (!drawing) return;
+  const touch = ev.touches[0];
+  if (!touch) return;
+  const p = getCanvasCoordsFromTouchEvent(touch, modalCanvas);
+  drawLineOrErase(lastX, lastY, p.x, p.y);
+  lastX = p.x; lastY = p.y;
+});
+
+modalCanvas.addEventListener('touchend', (ev) => {
+  ev.preventDefault();
+  drawing = false;
+});
+
+// Função que desenha ou apaga no canvas
+function drawLineOrErase(x1, y1, x2, y2) {
+  if (mode === 'mark') {
+    modalCtx.save();
+    modalCtx.globalCompositeOperation = 'source-over';
+    modalCtx.strokeStyle = currentColor;
+    modalCtx.lineWidth = currentThickness;
+    modalCtx.lineCap = 'round';
+    modalCtx.lineJoin = 'round';
+    modalCtx.beginPath();
+    modalCtx.moveTo(x1, y1);
+    modalCtx.lineTo(x2, y2);
+    modalCtx.stroke();
+    modalCtx.restore();
+  } else if (mode === 'erase') {
+    modalCtx.save();
+    modalCtx.globalCompositeOperation = 'destination-out';
+    modalCtx.beginPath();
+    modalCtx.moveTo(x1, y1);
+    modalCtx.lineTo(x2, y2);
+    modalCtx.lineWidth = currentThickness;
+    modalCtx.lineCap = 'round';
+    modalCtx.lineJoin = 'round';
+    modalCtx.stroke();
+    modalCtx.restore();
+  }
+}
+
+function atualizarCursor(){
+  if (mode === 'erase') {
+    modalCanvas.style.cursor = 'crosshair';
+  } else {
+    modalCanvas.style.cursor = 'crosshair';
+  }
+}
+
+function salvarCampos() {
+  alert("Campos salvos localmente (dados mantidos apenas nesta sessão).");
+}
+
+function limparCampos() {
+  document.querySelectorAll("input, textarea, select").forEach(el => {
+    if (el.type === 'radio' || el.type === 'checkbox') el.checked = false;
+    else el.value = "";
+  });
+  ctx?.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById("tools").style.display = "none";
+  document.getElementById("btnPDF").style.display = "none";
+  prints = [];
+  const thumbs = document.getElementById("thumbnails");
+  if (thumbs) thumbs.remove();
+  atualizarContadorPrints();
+}
+
+/* =====================================================
+   Funcionalidade de geração do PDF
+   ===================================================== */
+   async function gerarPDF() {
+  try {
+    if (!window.jspdf) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Falha ao carregar jsPDF'));
+        document.head.appendChild(s);
+      });
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const margin = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const usableW = pageWidth - margin * 2;
+    let y = 50;
+
+    const dados = {
+      tipoSistema: document.getElementById("tipoSistema").value || "",
+      versao: document.getElementById("versao").value || "",
+      funcionalidade: document.getElementById("funcionalidade").value || "",
+      userStory: document.getElementById("userStory").value || "",
+      preRequisitos: document.getElementById("preRequisitos").value || "",
+      tipoTeste: document.getElementById("tipoTeste").value || "",
+      tags: document.getElementById("tags").value || "",
+      comportamento: document.getElementById("comportamento").value || ""
+    };
+
+    // Título
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Teste", margin, y);
+    y += 30;
+
+    // Cabeçalho de dados
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    const metaLines = [
+      `Tipo de sistema: ${dados.tipoSistema}`,
+      `Versão: ${dados.versao}`,
+      `Funcionalidade: ${dados.funcionalidade}`,
+      `Tarefa/User Story: ${dados.userStory}`,
+      `Pré-requisitos: ${dados.preRequisitos}`,
+      `Tipo de teste: ${dados.tipoTeste}`,
+      `Tags: ${dados.tags}`,
+      `Gerado em: ${new Date().toLocaleString()}`
+    ];
+    metaLines.forEach(line => {
+      doc.text(line, margin, y);
+      y += 16; // espaçamento maior entre linhas
+    });
+
+    // Separador visual
+    y += 10;
+    doc.setDrawColor(180);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 20;
+
+    // Descrição de comportamento
+    if (dados.comportamento) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Descrição do comportamento:", margin, y);
+      y += 18;
+      doc.setFont("helvetica", "normal");
+
+      const behaviorLines = doc.splitTextToSize(dados.comportamento, usableW);
+      behaviorLines.forEach(line => {
+        if (y > doc.internal.pageSize.getHeight() - margin) {
+          doc.addPage();
+          y = margin;
+        }
+        doc.text(line, margin, y);
+        y += 14;
+      });
+      y += 10;
+
+      doc.setDrawColor(180);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 20;
+    }
+
+    // Adiciona prints
+    for (let i = 0; i < prints.length; i++) {
+      const imgData = prints[i];
+      const img = new Image();
+      img.src = imgData;
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = rej;
+      });
+
+      const imgW = usableW;
+      const imgH = (img.height * imgW) / img.width;
+
+      if (y + imgH > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        y = margin;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.text(`Evidência ${i + 1}`, margin, y);
+      y += 10;
+      doc.addImage(imgData, 'PNG', margin, y, imgW, imgH);
+      y += imgH + 20;
+    }
+
+    // Abre PDF em nova aba com opção de download
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const newTab = window.open();
+    const html = `
+      <html><head><title>EasyTesterOpen - Relatório</title><meta charset="utf-8"/>
+      <style>
+        body{margin:0;background:#f2f4f7;display:flex;flex-direction:column;height:100vh}
+        .bar{width:100%;padding:10px;background:#fff;display:flex;justify-content:flex-end;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+        button{background:#1f6feb;color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
+        iframe{flex:1;border:none;width:100%}
+      </style></head>
+      <body><div class="bar"><button id="saveBtn">Baixar PDF</button></div>
+      <iframe src="${pdfUrl}"></iframe>
+      <script>
+        const pdfUrl = ${JSON.stringify(pdfUrl)};
+        document.getElementById('saveBtn').addEventListener('click', () => {
+          const a = document.createElement('a');
+          a.href = pdfUrl;
+          a.download = 'Evidencia_EasyTesterOpen.pdf';
+          a.click();
+        });
+      <\/script></body></html>`;
+    newTab.document.open();
+    newTab.document.write(html);
+    newTab.document.close();
+
+  } catch (err) {
+    console.error('Erro ao gerar PDF:', err);
+    alert('Erro ao gerar PDF. Veja console para detalhes.');
+  }
+}
+
+/* =====================================================
+   Inicialização: atualiza contador inicial (0 prints)
+   ===================================================== */
+atualizarContadorPrints();
+
+</script>
+
+</body>
+</html>
